@@ -1,0 +1,8 @@
+/Volumes/FILES/_proj/sbsc/build/CMakeFiles/edit_cache.dir
+/Volumes/FILES/_proj/sbsc/build/CMakeFiles/rebuild_cache.dir
+/Volumes/FILES/_proj/sbsc/build/src/CMakeFiles/sbsc.dir
+/Volumes/FILES/_proj/sbsc/build/src/CMakeFiles/edit_cache.dir
+/Volumes/FILES/_proj/sbsc/build/src/CMakeFiles/rebuild_cache.dir
+/Volumes/FILES/_proj/sbsc/build/apps/CMakeFiles/basic_ints.dir
+/Volumes/FILES/_proj/sbsc/build/apps/CMakeFiles/edit_cache.dir
+/Volumes/FILES/_proj/sbsc/build/apps/CMakeFiles/rebuild_cache.dir

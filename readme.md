@@ -1,0 +1,62 @@
+# Spread of Beliefs in (Partly) Modularized Communities
+
+*2025-01-19:*
+- things to model:
+    - agents: modeled by vertices in the network
+    - influences modeled by directed edges in the network
+    - solutions: modeled by an arbitrary structure
+    - utilities: modeled by some function on that structure
+- important implementation details
+    - desicion-making incorporates evidence according to details in paper
+    - descision-making can switch between "averaging" and "summing" as detailed in paper.
+    - desicion-making is probabilistic according to details in paper (parameterized softmax)
+    - 
+- hyperparameters:
+    - number of agents N
+    - number of solutions N_o
+    - choice determinism (paramterizes softmax) gamma
+    - evidence integration strategy (average vs sum) g
+    - probability of forming a connection to another vertex P
+    - number of rounds to simulate r
+- notes for initial versions
+    - no "communities", instead just connect to anyone randomly
+    - store graph of previous iteration, so vertex can restore connections of prev. evolutionary.
+    - don't take into account current decision when making new ones?
+    - r version of code: https://github.com/rgoldsto/SBSC
+- other notes
+    - igraph vertices have ids from 0 to n-1. so just use arrays to store utility objects
+    - each stage should go: update utility object, then update graph connection
+        - if switched last time and new is better, then try switching again
+        - if switched last time and old is better, then reset to prev
+        - if reset back last time, try switching.
+    - above assumes switch every time. maybe only switch some of the time?
+        - vary current connections instead of switching completely?
+        - look into what R implementation does before implementing.
+
+*2025-01-08:*
+- questions
+	- what exactly is the delta function?
+	- how should the graph itself evolve? randomly?
+	- how large should the model be?
+- new networks created by random permutation
+- temperature (softmax descision rule/simulated annealing) based for choosing network?
+- compare random to previous and probabalistically choose better
+- consider own solution in softmax, but it's random so might result in other solution
+- low baseline utility
+- start with unstructured, single "utility" thing, but structure to generalize to other potential problems
+- nk landscapes stuart kaufman as eventual goal
+	- n is # bits in solution/# nodes
+	- k is degree
+	- solutions represented as networks
+	- each bit has utility for 0 and utility for 1
+	- utility also has interactions/combinations
+	- K is how much interaction each node has with others for interaction
+- for combining solutions can be crossover + mutation, or just one of them
+- stochastic block model
+	- parameterized by between-block clumpiness and and within-block clumpiness
+- connections are one-directional
+- probably use a graph library for C, probably igraph
+- look into using supercomputer for running the actual tests
+- what do the networks look like at the end
+- randy bier has relevant stuff?
+
