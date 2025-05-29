@@ -1,5 +1,61 @@
 # Spread of Beliefs in (Partly) Modularized Communities
 
+system dependencies:
+- igraph
+- 
+
+*2025-05-29:*
+- cmake debug build: `cmake -DCMAKE_BUILD_TYPE=Debug ..` from build directory
+- the issue is that s.actor_util_objs array becomes a null pointer by the end of update_util_objs
+    - happens because prev_util_objs is a nullptr
+    - issue was that was not setting .actor_util_objs of new_sbsc in create_sbsc.
+- TODO: figure out why avg utility doesn't change
+    - avg utility being recorded properly
+    - if so, that opinion exchange is working
+    - softmax_decide seems to be producing a negative index?
+    - happening because util_obj_scores_len = 0 for some reason
+- simplify collect_statistics to only take one arg? b/c sbsc arg contains stats_info?
+- new issue after passing sbsc_t pointers around: s->prev_connection_graph uninitialized in default_collect_statistics
+    - issue was passing sbsc_t** to collect_statistics instead of sbsc_t*
+- questions for going forward:
+    - should reset to starting opinions when graph updates?
+        - right now doesn't. then when graph not updated, it accumulates more rounds of opinion exchange
+    - should actors consider their own opinions?
+
+*2025-05-28:*
+- TODO: figure out memory issue
+    - get debug build working, then use debugger and valgrind
+    - try move to bazel.
+
+*2025-04-24:*
+- add code to update graph connectivity, not just opinions
+- add code in sbsc to run simulation for some number of rounds
+- add code to log graph statistics. maybe make generic
+- figure out if sbsc_t should be passed as pointer or raw
+- TODO: function to print statistics
+- TODO: figure out why igraph_copy in initializing sbsc results in memory issue
+
+*2025-02-14:*
+- run x rounds of opinion exchange
+- try randomly tweaking network (weighted?). probability of new based on weighted (exponentially) difference
+    - tweak whole network at a time rather than individuals for now. might result in self-optimization against total optimization
+- repeat.
+- mcmc, gibb sampling, optimization with particle filters (weighted updating)
+ - ~50 rounds of opinion exchange, * ~1000 iterations of network evolution, then write out final network config. then repeat with other networks or parameters
+- keep intermediate graphs? or just average utility?
+- modularize statistics-keeping stuff (avg utility, average degree, communities in the graph, other graph statistics stuff, spinglass?, reciprocity)
+- keep intermediate statistics, but not neccesarily intermediate graphs
+- 50 rounds opinion exchange, 1000 iterations of network evolution, 
+- randomness of original beliefs might overshadow the difference of tweaking connections
+- run the 50 rounds of opinion exchagne with different starting opinions (10 or so). network connection evolution is the thing that matters.
+- beyond 100 agent probably to much, reccomend under 100, maybe 50.
+- number of opinions: ~10.
+- for problems with "unheld" opinions, need some weight for "unheld" opinions so that they could be chosen.
+- probability of two nodes being connected, start at 50%.
+- probably start with evidence integration strategy as 0 or 1 (just look at which one did better in original paper)
+
+- reccomended to apply for goldstone scholarship. maximum is 1000.
+
 *2025-01-19:*
 - things to model:
     - agents: modeled by vertices in the network
