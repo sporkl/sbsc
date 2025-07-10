@@ -1,36 +1,77 @@
 #include <sbsc/sbsc.h>
 
+
+igraph_error_t initialize_graph(igraph_t* connection_graph, int num_agents, double connection_probability) {
+
+	igraph_error_t err;
+
+	// create the graph
+	err = igraph_erdos_renyi_game_gnp(
+		connection_graph,
+		num_agents,
+		connection_probability,
+		true, // directed
+		false // not probabilistically self-connected
+	);
+
+	// return error if applicable
+	if (err != IGRAPH_SUCCESS) {
+		return err;
+	}
+
+	// enforce self-connection
+	for (int a = 0; a < num_agents; a++) {
+		
+		// create the edge
+		err = igraph_add_edge(connection_graph, a, a);
+
+		if (err != IGRAPH_SUCCESS) {
+			return err;
+		}
+	}
+
+	return IGRAPH_SUCCESS;
+}
+
+// initialize utility objects
+void initialize_util_objs(sbsc_params_t params, void** actor_util_objs, void** prev_util_objs) {
+	for (int a = 0; a < params.num_agents; a++) {
+		params.util_obj_intf.init_random(actor_util_objs[a]);
+		params.util_obj_intf.copy(prev_util_objs[a], actor_util_objs[a]);
+	}
+}
+
+void free_array_objs(int len, void** objs, void (*destroy)(void*)) {
+	for (int i = 0; i < len; i++) {
+		destroy(objs[i]);
+	}
+}
+
 sbsc_t* create_sbsc(sbsc_params_t params) {
 	// initialize the graph
 	igraph_t* connection_graph = igraph_malloc(sizeof(igraph_t));
-	igraph_erdos_renyi_game_gnp(
-			connection_graph,
-			params.num_agents,
-			params.connection_probability,
-			true, // directed
-			false // not self-connected
-		);
+	initialize_graph(connection_graph, params.num_agents, params.connection_probability);
 	
 	// initialize "prev" graph
 	igraph_t* prev_connection_graph = igraph_malloc(sizeof(igraph_t));
 	igraph_copy(prev_connection_graph, connection_graph);
 
 	// initialize the utility objects
-	void** actor_utility_objects = igraph_malloc(params.num_agents * sizeof(void*));
-	void** prev_util_objects = igraph_malloc(params.num_agents * sizeof(void*));
-	for (int i = 0; i < params.num_agents; i++) {
-		actor_utility_objects[i] = params.util_obj_intf.create_random();
-		prev_util_objects[i] = params.util_obj_intf.create_unit();
-		params.util_obj_intf.copy(prev_util_objects[i], actor_utility_objects[i]);
+	void** actor_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
+	void** prev_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
+	for (int a = 0; a < params.num_agents; a++) {
+		actor_util_objs[a] = params.util_obj_intf.allocate();
+		prev_util_objs[a] = params.util_obj_intf.allocate();
 	}
+	initialize_util_objs(params, actor_util_objs, prev_util_objs);
 
 	sbsc_t* new_sbsc = igraph_malloc(sizeof(sbsc_t));
 
 	new_sbsc->params = params;
 	new_sbsc->connection_graph = connection_graph;
 	new_sbsc->prev_connection_graph = prev_connection_graph;
-	new_sbsc->actor_util_objs = actor_utility_objects;
-	new_sbsc->prev_util_objs = prev_util_objects;
+	new_sbsc->actor_util_objs = actor_util_objs;
+	new_sbsc->prev_util_objs = prev_util_objs;
 	new_sbsc->prev_avg_utility = -INFINITY;
 	new_sbsc->stats_info = params.empty_stats_info(params.rounds_evolve_graph);
 
@@ -42,9 +83,8 @@ void destroy_sbsc(sbsc_t* s) {
 	igraph_free(s->connection_graph);
 	igraph_free(s->prev_connection_graph);
 
-	for (int i = 0; i < s->params.num_agents; i++) {
-		s->params.util_obj_intf.destroy(s->actor_util_objs[i]);
-	}
+	free_array_objs(s->params.num_agents, s->actor_util_objs, s->params.util_obj_intf.destroy);
+	free_array_objs(s->params.num_agents, s->prev_util_objs, s->params.util_obj_intf.destroy);
 
 	igraph_free(s->actor_util_objs);
 	igraph_free(s->prev_util_objs);
@@ -152,7 +192,6 @@ void update_util_objs(sbsc_t* s) {
 			uos->score += s->params.util_obj_intf.get_utility(uos->obj);
 
 		}
-		// if want to incorporate own uo, then have arrow to self.
 		
 		// normalize evidence
 		// need to update this if add different weights
@@ -194,15 +233,9 @@ void evolve_graph(sbsc_t* s) {
 	// collect statistics
 	s->params.collect_statistics(s->stats_info, s);
 
-	// generate a new current graph
-	igraph_erdos_renyi_game_gnp(
-			s->connection_graph,
-			s->params.num_agents,
-			s->params.connection_probability,
-			true, // directed
-			false // no self-connections
-		);
-	
+	// generate a new current graph by rewiring edges
+	igraph_copy(s->connection_graph, s->prev_connection_graph);
+	igraph_rewire_edges(s->connection_graph, s->params.rewire_probability, true, false);
 }
 
 // default statistics collection
@@ -215,6 +248,7 @@ void* default_empty_stats_info(int num_rounds) {
 	stats_info->avg_utilities = igraph_malloc(num_rounds * sizeof(double));
 	stats_info->avg_degrees = igraph_malloc(num_rounds * sizeof(int));
 	stats_info->reciprocity = igraph_malloc(num_rounds * sizeof(double));
+	stats_info->spinglass_modularity = igraph_malloc(num_rounds * sizeof(double));
 	stats_info->clustering_coeff = igraph_malloc(num_rounds * sizeof(double));
 	
 	return (void*) stats_info;
@@ -228,6 +262,9 @@ void default_collect_statistics(void* si, void* sbsc) {
 	stats_info->avg_utilities[n] = s->prev_avg_utility;
 	igraph_mean_degree(s->prev_connection_graph, &(stats_info->avg_degrees[n]), true);
 	igraph_reciprocity(s->prev_connection_graph, &(stats_info->reciprocity[n]), false, IGRAPH_RECIPROCITY_DEFAULT);
+	igraph_community_spinglass(s->prev_connection_graph, NULL, &(stats_info->spinglass_modularity[n]),
+				NULL, NULL, NULL, /* num spins */ 4, false, 1.0, 0.01, 0.99,
+				IGRAPH_SPINCOMM_UPDATE_SIMPLE, /* gamma */ 1.0, IGRAPH_SPINCOMM_IMP_ORIG, 0.0);
 	igraph_transitivity_undirected(s->prev_connection_graph, &(stats_info->clustering_coeff[n]), IGRAPH_TRANSITIVITY_ZERO);
 
 	if (n < stats_info->total_rounds) {
@@ -247,5 +284,6 @@ void run_sbsc(sbsc_t* s) {
 			update_util_objs(s);
 		}
 		evolve_graph(s);
+		initialize_util_objs(s->params, s->actor_util_objs, s->prev_util_objs);
 	}
 }

@@ -1,16 +1,15 @@
 #include <sbsc/sbsc.h>
 #include <igraph.h>
 
-void* int_unit() {
+void* allocate(void) {
 	int* x = (int*) igraph_malloc(sizeof(int));
 	*x = 0;
 	return (void*) x;
 }
 
-void* random_int_radius_five() {
-	int* x = (int*) igraph_malloc(sizeof(int));
+void random_int_radius_five(void* xv) {
+	int* x = (int*) xv;
 	*x = igraph_rng_get_integer(igraph_rng_default(), -5, 5);
-	return (void*) x;
 }
 
 void copy_int(void* a, void* b) {
@@ -27,9 +26,9 @@ int int_id(void* x) {
 }
 
 const util_obj_intf_t int_radius_five = {
-	.create_unit = *int_unit,
-	.create_random = *random_int_radius_five,
-	.copy = copy_int,
+	.allocate = *allocate,
+	.init_random = *random_int_radius_five,
+	.copy = *copy_int,
 	.destroy = *igraph_free,
 	.hash = *int_id,
 	.get_utility = *int_radius_five_utility,
@@ -38,10 +37,11 @@ const util_obj_intf_t int_radius_five = {
 // taken from original paper exception for connection_probability
 const sbsc_params_t basic_ints_params = {
 	.util_obj_intf = int_radius_five,
-	.num_agents = 200,
+	.num_agents = 100,
 	.gamma = 1.0,
 	.evidence_integration = 0.0,
-	.connection_probability = 0.1,
+	.connection_probability = 0.3,
+	.rewire_probability = 0.05,
 	.rounds_opinion_exchange = 20,
 	.rounds_evolve_graph = 20,
 	.empty_stats_info = default_empty_stats_info,
@@ -64,13 +64,16 @@ int main(void) {
 	
 	printf("===== STATS =====\n");
 	for (int r = 0; r < the_sbsc->params.rounds_evolve_graph; r++) {
-		printf("round: %d\n", r);
+		printf("generation: %d\n", r);
 		printf("avg utility: %f\n", stats->avg_utilities[r]);
 		printf("avg degrees: %f\n", stats->avg_degrees[r]);
 		printf("reciprocity: %f\n", stats->reciprocity[r]);
+		printf("spinglass modularity (4 spins): %f\n", stats->spinglass_modularity[r]);
 		printf("cluster coeff: %f\n", stats->clustering_coeff[r]);
 		printf("-----------------\n");
 	}
+
+	destroy_sbsc(the_sbsc);
 	
 	return 0;
 }

@@ -9,8 +9,8 @@
 // utility objects are objects for which the following functions/values are defined.
 // expand as needed
 typedef struct util_obj_intf {
-	void* (*create_unit)(void);
-	void* (*create_random)(void);
+	void* (*allocate)(void);
+	void (*init_random)(void*);
 	void (*copy)(void*, void*); // copies second into first
 	void (*destroy)(void*);
 	int (*hash)(void*);
@@ -24,6 +24,7 @@ typedef struct sbsc_params {
 	double gamma; // softmax determinism
 	double evidence_integration; // 0 is summed (popularity), 1 is averaged (best utility)
 	double connection_probability;
+	double rewire_probability;
 	int rounds_opinion_exchange;
 	int rounds_evolve_graph;
 	void* (*empty_stats_info)(int rounds_evolve_graph);
@@ -53,7 +54,7 @@ typedef struct default_stats_info {
 	double* avg_utilities;
 	double* avg_degrees;
 	double* reciprocity;
-	// double modularity[];
+	double* spinglass_modularity;
 	double* clustering_coeff;
 } default_stats_info_t;
 

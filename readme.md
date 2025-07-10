@@ -4,6 +4,39 @@ system dependencies:
 - igraph
 - 
 
+*2025-07-10:*
+- todo:
+    - x collect spinglass modularity statistic 
+    - x agents consider own opinion
+    - x randomize util obj assigment each new round of evolution
+    - x reduce to 100 agents
+    - x refactor util_obj_intf to have separate allocate, init_unit, and init_random procedures
+    - x rewire existing network (rewire probability 0.05) instead of generate new one during evolution
+    - collect statistics every n rounds instead of every round (if round % n = 0)
+    - record graph after evolution is done
+    - record statistics after evolution is done
+    - outer outer loop drying out different networks, do 1000 runs
+
+*2025-06-09:*
+- collect spinglass modularity statistic
+- when evaluate network, do so with several starting configurations
+- probabilistic decide whether to switch to new graph or not?
+- collect stats about if new generation is better
+- "round" is inner loop, "generation" is outer loop, "run" is 
+- could be interesting to consider max utility of graph when evolving
+- may be interesting to see if slower rise in utility happens
+- todo;
+    - randomize opinions at start of each generation
+    - consider own opinion
+    - outer outer loop trying out different networks
+    - collect statistics at n equal-spaced points in time rather than every time
+    - write out graph at end of every evolutionary run
+    - rewire existing network with some probability rather than generating a new one (every edge flipped with some probability, mutation/rewriting rate)
+    - .3 initial connection probability
+    - rewiring probability less than .1, .05 probably
+    - 1000 runs
+    - maybe reduce num agents to 100 or potentially less
+
 *2025-05-29:*
 - cmake debug build: `cmake -DCMAKE_BUILD_TYPE=Debug ..` from build directory
 - the issue is that s.actor_util_objs array becomes a null pointer by the end of update_util_objs
