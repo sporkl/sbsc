@@ -27,30 +27,33 @@ typedef struct sbsc_params {
 	double rewire_probability;
 	int rounds_opinion_exchange;
 	int rounds_evolve_graph;
-	void* (*empty_stats_info)(int rounds_evolve_graph);
-	void (*collect_statistics)(void* stats_info, void*);
+	void* empty_stats_info;
+	void (*collect_statistics)(void* stats_info, void* sbsc, float utility);
 	void (*destroy_stats_info)(void* stats_info);
 } sbsc_params_t;
 
 typedef struct sbsc {
 	sbsc_params_t params;
 	igraph_t* connection_graph;
-	igraph_t* prev_connection_graph;
-	void** actor_util_objs; // array of pointers to utility objects
+	igraph_t* best_connection_graph;
+	void** util_objs; // array of pointers to utility objects
 	void** prev_util_objs;
-	double prev_avg_utility;
+	void** best_util_objs;
+	void** prev_best_util_objs;
 	void* stats_info;
 } sbsc_t;
 
 sbsc_t* create_sbsc(sbsc_params_t);
 void destroy_sbsc(sbsc_t*);
 
-void update_util_objs(sbsc_t*);
+void update_util_objs(sbsc_params_t, igraph_t*, void** util_objs, void** prev_util_objs);
 void evolve_graph(sbsc_t*);
 
 typedef struct default_stats_info {
-	int current_round;
-	int total_rounds;
+	int current_gen;
+	int data_len;
+	int stride;
+	int* generation_nums;
 	double* avg_utilities;
 	double* avg_degrees;
 	double* reciprocity;
@@ -58,10 +61,11 @@ typedef struct default_stats_info {
 	double* clustering_coeff;
 } default_stats_info_t;
 
-void* default_empty_stats_info(int num_rounds);
-void default_collect_statistics(void* stats_info, void* sbsc);
+void* default_empty_stats_info(int num_rounds, int stride);
+void default_collect_statistics(void* stats_info, void* sbsc, float utility);
 void default_destroy_stats_info(void*);
 void default_print_stats_info(void*);
+void default_csv_stats_info(FILE* f, void* stats_info_ptr);
 
 void run_sbsc(sbsc_t* s);
 

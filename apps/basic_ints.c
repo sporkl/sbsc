@@ -44,7 +44,7 @@ const sbsc_params_t basic_ints_params = {
 	.rewire_probability = 0.05,
 	.rounds_opinion_exchange = 20,
 	.rounds_evolve_graph = 20,
-	.empty_stats_info = default_empty_stats_info,
+	.empty_stats_info = NULL,
 	.collect_statistics = default_collect_statistics,
 	.destroy_stats_info = default_destroy_stats_info,
 };
@@ -52,6 +52,21 @@ const sbsc_params_t basic_ints_params = {
 int main(void) {
 	// seed the rng for reproducible results
 	igraph_rng_seed(igraph_rng_default(), 2025);
+
+	// params
+	sbsc_params_t basic_ints_params = {
+		.util_obj_intf = int_radius_five,
+		.num_agents = 100,
+		.gamma = 1.0,
+		.evidence_integration = 0.0,
+		.connection_probability = 0.3,
+		.rewire_probability = 0.05,
+		.rounds_opinion_exchange = 20,
+		.rounds_evolve_graph = 21,
+		.empty_stats_info = default_empty_stats_info(21, 5),
+		.collect_statistics = default_collect_statistics,
+		.destroy_stats_info = default_destroy_stats_info,
+	};
 	
 	// create the sbsc model
 	sbsc_t* the_sbsc = create_sbsc(basic_ints_params);
@@ -61,17 +76,11 @@ int main(void) {
 
 	// print statistics
 	default_stats_info_t* stats = (default_stats_info_t*) the_sbsc->stats_info;
+	default_csv_stats_info(stdout, stats);
 	
-	printf("===== STATS =====\n");
-	for (int r = 0; r < the_sbsc->params.rounds_evolve_graph; r++) {
-		printf("generation: %d\n", r);
-		printf("avg utility: %f\n", stats->avg_utilities[r]);
-		printf("avg degrees: %f\n", stats->avg_degrees[r]);
-		printf("reciprocity: %f\n", stats->reciprocity[r]);
-		printf("spinglass modularity (4 spins): %f\n", stats->spinglass_modularity[r]);
-		printf("cluster coeff: %f\n", stats->clustering_coeff[r]);
-		printf("-----------------\n");
-	}
+	// print the graph
+	/* printf("---------- GRAPH ----------\n"); */
+	/* igraph_write_graph_dot(the_sbsc->best_connection_graph, stdout); */
 
 	destroy_sbsc(the_sbsc);
 	

@@ -12,9 +12,10 @@ system dependencies:
     - x reduce to 100 agents
     - x refactor util_obj_intf to have separate allocate, init_unit, and init_random procedures
     - x rewire existing network (rewire probability 0.05) instead of generate new one during evolution
-    - collect statistics every n rounds instead of every round (if round % n = 0)
-    - record graph after evolution is done
-    - record statistics after evolution is done
+    - x collect statistics every n rounds instead of every round (if round % n = 0)
+    - x randomize starting configuration of old graph and exchange it's opinions as well before comparing
+    - x record graph after evolution is done
+    - x record statistics after evolution is done
     - outer outer loop drying out different networks, do 1000 runs
 
 *2025-06-09:*
