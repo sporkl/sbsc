@@ -4,6 +4,22 @@ system dependencies:
 - igraph
 - 
 
+*2025-07-15:*
+- updated stats collection and main_ints binary seem to work correctly
+- should randomly create/destroy edges rather than rewire existing ones when evolving graph
+- make sure have server access and can compile on it
+- have igraph installation under igraph in home dir on silo, so need to build with `cmake .. -DCMAKE_PREFIX_PATH=~/igraph`
+
+*2025-07-14:*
+- params I think
+    - 50 agents
+    - 50% connection probability chance when starting out
+    - 5% chance of a connection being randomly rewired
+    - 50 rounds of opinion exchange per loop of evolution
+    - 500 rounds of evolution
+    - 500 iterations of outer loop, so try out 500 different starting graphs and see how they evolve
+- add a reset_stats_info so can use initialize_stats_info as-is, but reset the counter so don't need to re-allocate stuff
+
 *2025-07-10:*
 - todo:
     - x collect spinglass modularity statistic 

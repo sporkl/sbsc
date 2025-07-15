@@ -24,10 +24,11 @@ typedef struct sbsc_params {
 	double gamma; // softmax determinism
 	double evidence_integration; // 0 is summed (popularity), 1 is averaged (best utility)
 	double connection_probability;
-	double rewire_probability;
+	double edge_toggle_probability;
 	int rounds_opinion_exchange;
 	int rounds_evolve_graph;
 	void* empty_stats_info;
+	void (*reset_stats_info)(void* stats_info);
 	void (*collect_statistics)(void* stats_info, void* sbsc, float utility);
 	void (*destroy_stats_info)(void* stats_info);
 } sbsc_params_t;
@@ -62,6 +63,7 @@ typedef struct default_stats_info {
 } default_stats_info_t;
 
 void* default_empty_stats_info(int num_rounds, int stride);
+void default_reset_stats_info(void* stats_info);
 void default_collect_statistics(void* stats_info, void* sbsc, float utility);
 void default_destroy_stats_info(void*);
 void default_print_stats_info(void*);

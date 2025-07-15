@@ -249,9 +249,36 @@ void evolve_graph(sbsc_t* s) {
 	// collect statistics
 	s->params.collect_statistics(s->stats_info, s, best_average_utility);
 
-	// generate a new current graph by rewiring edges
+	//// generate a new current graph by toggling edges according to probability
+	
+	// start with the previous best graph
 	igraph_copy(s->connection_graph, s->best_connection_graph);
-	igraph_rewire_edges(s->connection_graph, s->params.rewire_probability, true, false);
+
+	// figure out how many edges to toggle (binomial distribution)
+	int edges_to_toggle = igraph_rng_get_binom(
+			igraph_rng_default(), s->params.num_agents, s->params.edge_toggle_probability);
+
+	// toggle those edges
+	for (int i = 0; i < edges_to_toggle; i++) {
+		// choose vertices
+		int v1 = igraph_rng_get_integer(igraph_rng_default(), 0, s->params.num_agents - 1);
+		int v2 = igraph_rng_get_integer(igraph_rng_default(), 0, s->params.num_agents - 1);
+
+		// get edge id (-1 if it doesn't exist)
+		igraph_integer_t eid = -1;
+		igraph_get_eid(s->connection_graph, &eid, v1, v2, false, false);
+
+		// toggle the edge
+		if (eid == -1) {
+			igraph_add_edge(s->connection_graph, v1, v2);
+		} else {
+			igraph_es_t edge_selector;
+			igraph_es_1(&edge_selector, eid);
+			igraph_delete_edges(s->connection_graph, edge_selector);
+		}
+
+	}
+
 }
 
 // default statistics collection
@@ -272,6 +299,14 @@ void* default_empty_stats_info(int num_rounds, int stride) {
 	stats_info->clustering_coeff = igraph_malloc(data_len * sizeof(double));
 	
 	return (void*) stats_info;
+
+}
+
+void default_reset_stats_info(void* stats_info) {
+	default_stats_info_t* si = (default_stats_info_t*) stats_info;
+
+	si->current_gen = 0;
+	// no need to clear other stuff b/c it should get overwritten
 
 }
 

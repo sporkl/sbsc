@@ -34,21 +34,6 @@ const util_obj_intf_t int_radius_five = {
 	.get_utility = *int_radius_five_utility,
 };
 
-// taken from original paper exception for connection_probability
-const sbsc_params_t basic_ints_params = {
-	.util_obj_intf = int_radius_five,
-	.num_agents = 100,
-	.gamma = 1.0,
-	.evidence_integration = 0.0,
-	.connection_probability = 0.3,
-	.rewire_probability = 0.05,
-	.rounds_opinion_exchange = 20,
-	.rounds_evolve_graph = 20,
-	.empty_stats_info = NULL,
-	.collect_statistics = default_collect_statistics,
-	.destroy_stats_info = default_destroy_stats_info,
-};
-
 int main(void) {
 	// seed the rng for reproducible results
 	igraph_rng_seed(igraph_rng_default(), 2025);
@@ -60,7 +45,7 @@ int main(void) {
 		.gamma = 1.0,
 		.evidence_integration = 0.0,
 		.connection_probability = 0.3,
-		.rewire_probability = 0.05,
+		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 20,
 		.rounds_evolve_graph = 21,
 		.empty_stats_info = default_empty_stats_info(21, 5),
