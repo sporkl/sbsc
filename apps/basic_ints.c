@@ -3,13 +3,13 @@
 
 void* allocate(void) {
 	int* x = (int*) igraph_malloc(sizeof(int));
-	*x = 0;
+	*x = 1;
 	return (void*) x;
 }
 
 void random_int_radius_five(void* xv) {
 	int* x = (int*) xv;
-	*x = igraph_rng_get_integer(igraph_rng_default(), -5, 5);
+	*x = igraph_rng_get_integer(igraph_rng_default(), 1, 10);
 }
 
 void copy_int(void* a, void* b) {
@@ -44,6 +44,7 @@ int main(void) {
 		.num_agents = 100,
 		.gamma = 1.0,
 		.evidence_integration = 0.0,
+		.creativity = 0.1,
 		.connection_probability = 0.3,
 		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 20,

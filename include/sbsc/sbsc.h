@@ -23,6 +23,7 @@ typedef struct sbsc_params {
 	int num_agents;
 	double gamma; // softmax determinism
 	double evidence_integration; // 0 is summed (popularity), 1 is averaged (best utility)
+	double creativity; // probability of choosing a random opinion
 	double connection_probability;
 	double edge_toggle_probability;
 	int rounds_opinion_exchange;

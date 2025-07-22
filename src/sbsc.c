@@ -151,6 +151,13 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 	// can overwrite because memory slot contains double-previous info
 	for (int a = 0; a < params.num_agents; a++) {
 
+		// some probability of choosing random opinion
+		double roll = igraph_rng_get_unif01(igraph_rng_default());
+		if (roll < params.creativity) {
+			params.util_obj_intf.init_random(util_objs[a]);
+			continue;
+		}
+
 		// get num neighbors
 		igraph_integer_t num_neighbors;
 		igraph_degree_1(

@@ -11,7 +11,7 @@ void* allocate(void) {
 
 void random_int_radius_five(void* xv) {
 	int* x = (int*) xv;
-	*x = igraph_rng_get_integer(igraph_rng_default(), -5, 5);
+	*x = igraph_rng_get_integer(igraph_rng_default(), 1, 50);
 }
 
 void copy_int(void* a, void* b) {
@@ -45,6 +45,7 @@ int main(void) {
 		.num_agents = 50,
 		.gamma = 1.0,
 		.evidence_integration = 0.0,
+		.creativity = 0.05,
 		.connection_probability = 0.5,
 		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 50,
@@ -61,7 +62,7 @@ int main(void) {
 	// should be less than 50 chars
 	char* filename = malloc(sizeof(char) * 50);
 
-	for (int run = 0; run < 500; run++) {
+	for (int run = 0; run < 1; run++) {
 		
 		// reset stats info
 		sbsc->params.reset_stats_info(sbsc->stats_info);

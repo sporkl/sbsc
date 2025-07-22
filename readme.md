@@ -4,10 +4,19 @@ system dependencies:
 - igraph
 - 
 
+*2025-07-21:*
+- todo: increase number of possible opinions from 10 to 50 
+- todo: some chance of unheld opinions being switched each round
+- should be 1/10 to 2/10 weight of when a single neighbor has the opnion. lean wtowards 1/5
+- or 5, assuming max opinion utiltity is 50
+- every utility object should have some base score
+- should only use numbers greater than 0 as opinion weights
+
 *2025-07-15:*
 - updated stats collection and main_ints binary seem to work correctly
 - should randomly create/destroy edges rather than rewire existing ones when evolving graph
 - make sure have server access and can compile on it
+- don't have apt so had to do manual igraph build and installation
 - have igraph installation under igraph in home dir on silo, so need to build with `cmake .. -DCMAKE_PREFIX_PATH=~/igraph`
 
 *2025-07-14:*
