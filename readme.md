@@ -4,6 +4,12 @@ system dependencies:
 - igraph
 - 
 
+*2025-07-28:*
+- todo: reimplement softmax_decide to simulating having some additional number of options with some value
+- ^ was quick to do, but utility still doesn't seem to reliably increase over time.
+    - forgot to take out creativity
+- other stats seem to converge, but utilities vary wildly
+
 *2025-07-21:*
 - todo: increase number of possible opinions from 10 to 50 
 - todo: some chance of unheld opinions being switched each round

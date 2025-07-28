@@ -15,6 +15,8 @@ typedef struct util_obj_intf {
 	void (*destroy)(void*);
 	int (*hash)(void*);
 	double (*get_utility)(const void*);
+	double base_utility; // utility of an object when no information is known about it
+	int count; // total number of different util objs
 } util_obj_intf_t;
 
 // parameters of the sbsc model
@@ -23,7 +25,6 @@ typedef struct sbsc_params {
 	int num_agents;
 	double gamma; // softmax determinism
 	double evidence_integration; // 0 is summed (popularity), 1 is averaged (best utility)
-	double creativity; // probability of choosing a random opinion
 	double connection_probability;
 	double edge_toggle_probability;
 	int rounds_opinion_exchange;

@@ -9,7 +9,7 @@ void* allocate(void) {
 	return (void*) x;
 }
 
-void random_int_radius_five(void* xv) {
+void random_int_radius_fifty(void* xv) {
 	int* x = (int*) xv;
 	*x = igraph_rng_get_integer(igraph_rng_default(), 1, 50);
 }
@@ -28,11 +28,13 @@ int int_id(void* x) {
 
 const util_obj_intf_t int_radius_five = {
 	.allocate = *allocate,
-	.init_random = *random_int_radius_five,
+	.init_random = *random_int_radius_fifty,
 	.copy = *copy_int,
 	.destroy = *igraph_free,
 	.hash = *int_id,
 	.get_utility = *int_radius_five_utility,
+	.base_utility = 1.0,
+	.count = 50,
 };
 
 int main(void) {
@@ -45,12 +47,11 @@ int main(void) {
 		.num_agents = 50,
 		.gamma = 1.0,
 		.evidence_integration = 0.0,
-		.creativity = 0.05,
 		.connection_probability = 0.5,
 		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 50,
 		.rounds_evolve_graph = 5001,
-		.empty_stats_info = default_empty_stats_info(5001, 250),
+		.empty_stats_info = default_empty_stats_info(5001, 50),
 		.reset_stats_info = default_reset_stats_info,
 		.collect_statistics = default_collect_statistics,
 		.destroy_stats_info = default_destroy_stats_info,

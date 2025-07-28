@@ -32,6 +32,8 @@ const util_obj_intf_t int_radius_five = {
 	.destroy = *igraph_free,
 	.hash = *int_id,
 	.get_utility = *int_radius_five_utility,
+	.base_utility = 2.0,
+	.count = 10,
 };
 
 int main(void) {
@@ -44,7 +46,6 @@ int main(void) {
 		.num_agents = 100,
 		.gamma = 1.0,
 		.evidence_integration = 0.0,
-		.creativity = 0.1,
 		.connection_probability = 0.3,
 		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 20,

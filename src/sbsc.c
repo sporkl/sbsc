@@ -112,34 +112,37 @@ typedef struct util_obj_score {
 	double score;
 } util_obj_score_t;
 
-void normalize_probabilities(double* probs, int start_index, int end_index) {
-	float total = 0.0;
-	for (int i = start_index; i < end_index; i++) {
-		total += probs[i];
-	}
-
-	for (int i = start_index; i < end_index; i++) {
-		probs[i] /= total;
-	}
-}
-
-int softmax_decide(double evidence[], int evidence_len, double gamma) {
+// returns chosen index, or -1 if chooses "extra evidence"
+int softmax_decide(double evidence[], int evidence_len, double gamma, double extra_evidence_val, int extra_evidence_len) {
 	// generate probabilities
 	double probabilities[evidence_len];
 	for (int i = 0; i < evidence_len; i++) {
 		probabilities[i] = exp(evidence[i] * gamma);
 	}
 
+	double extra_evidence_probability = exp(extra_evidence_val * gamma) * (double) extra_evidence_len;
+
 	// sample according to probabilities
 	for (int i = 0; i < evidence_len; i++) {
-		normalize_probabilities(probabilities, i, evidence_len);
+
+		// normalize probabilities, accounting for extra evidence
+		double total = extra_evidence_probability;
+		for (int j = i; j < evidence_len; j++) {
+			total += probabilities[i];
+		}
+
+		for (int j = i; j < evidence_len; j++) {
+			probabilities[i] /= total;
+		}
+
+		// see if choose current probability
 		double roll = igraph_rng_get_unif01(igraph_rng_default());
 		if (roll < probabilities[i]) {
 			return i;
 		}
 	}
 
-	return evidence_len - 1;
+	return -1;
 
 }
 
@@ -150,13 +153,6 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 	// update current util objs per agent
 	// can overwrite because memory slot contains double-previous info
 	for (int a = 0; a < params.num_agents; a++) {
-
-		// some probability of choosing random opinion
-		double roll = igraph_rng_get_unif01(igraph_rng_default());
-		if (roll < params.creativity) {
-			params.util_obj_intf.init_random(util_objs[a]);
-			continue;
-		}
 
 		// get num neighbors
 		igraph_integer_t num_neighbors;
@@ -223,9 +219,16 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		}
 
 		// use softmax_decide to choose a new utility object
-		int chosen_util_obj_index = softmax_decide(final_util_obj_scores, util_obj_scores_len, params.gamma);
-		
-		params.util_obj_intf.copy(util_objs[a], util_obj_scores[chosen_util_obj_index].obj);
+		int chosen_util_obj_index = softmax_decide(
+				final_util_obj_scores, util_obj_scores_len,
+				params.gamma,
+				params.util_obj_intf.base_utility, params.util_obj_intf.count);
+
+		if (chosen_util_obj_index < 0) {
+			params.util_obj_intf.init_random(util_objs[a]);
+		} else {
+			params.util_obj_intf.copy(util_objs[a], util_obj_scores[chosen_util_obj_index].obj);
+		}
 
 	}
 }
