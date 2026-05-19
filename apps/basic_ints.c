@@ -50,9 +50,9 @@ int main(void) {
 		.edge_toggle_probability = 0.05,
 		.rounds_opinion_exchange = 20,
 		.rounds_evolve_graph = 21,
-		.empty_stats_info = default_empty_stats_info(21, 5),
-		.collect_statistics = default_collect_statistics,
-		.destroy_stats_info = default_destroy_stats_info,
+		.empty_stats_info = graphwrite_empty_stats_info(5, "basic_ints"),
+		.collect_statistics = graphwrite_collect_statistics,
+		.destroy_stats_info = graphwrite_destroy_stats_info,
 	};
 	
 	// create the sbsc model
@@ -62,8 +62,8 @@ int main(void) {
 	run_sbsc(the_sbsc);
 
 	// print statistics
-	default_stats_info_t* stats = (default_stats_info_t*) the_sbsc->stats_info;
-	default_csv_stats_info(stdout, stats);
+	/* default_stats_info_t* stats = (default_stats_info_t*) the_sbsc->stats_info; */
+	/* default_csv_stats_info(stdout, stats); */
 	
 	// print the graph
 	/* printf("---------- GRAPH ----------\n"); */

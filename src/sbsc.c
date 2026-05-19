@@ -1,6 +1,5 @@
 #include <sbsc/sbsc.h>
 
-
 igraph_error_t initialize_graph(igraph_t* connection_graph, int num_agents, double connection_probability) {
 
 	igraph_error_t err;
@@ -11,7 +10,8 @@ igraph_error_t initialize_graph(igraph_t* connection_graph, int num_agents, doub
 		num_agents,
 		connection_probability,
 		true, // directed
-		false // not probabilistically self-connected
+		IGRAPH_SIMPLE_SW, // no self loops
+		false // not edge-labeled, I guess?
 	);
 
 	// return error if applicable
@@ -40,7 +40,11 @@ void initialize_util_objs(sbsc_t* s) {
 		s->params.util_obj_intf.copy(s->prev_util_objs[a], s->util_objs[a]);
 		s->params.util_obj_intf.copy(s->best_util_objs[a], s->util_objs[a]);
 		s->params.util_obj_intf.copy(s->prev_best_util_objs[a], s->util_objs[a]);
+
+		SETVAN(s->connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->util_objs[a]));
+		SETVAN(s->best_connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->best_util_objs[a]));
 	}
+
 }
 
 void free_array_objs(int len, void** objs, void (*destroy)(void*)) {
@@ -50,6 +54,10 @@ void free_array_objs(int len, void** objs, void (*destroy)(void*)) {
 }
 
 sbsc_t* create_sbsc(sbsc_params_t params) {
+
+	// make sure have access to weight attributes
+	igraph_set_attribute_table(&igraph_cattribute_table);
+
 	// initialize the graph
 	igraph_t* connection_graph = igraph_malloc(sizeof(igraph_t));
 	initialize_graph(connection_graph, params.num_agents, params.connection_probability);
@@ -70,6 +78,7 @@ sbsc_t* create_sbsc(sbsc_params_t params) {
 		prev_best_util_objs[a] = params.util_obj_intf.allocate();
 	}
 
+	// set up the sbsc object
 	sbsc_t* new_sbsc = igraph_malloc(sizeof(sbsc_t));
 
 	new_sbsc->params = params;
@@ -182,7 +191,7 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 
 		igraph_vector_int_t neighbors;
 		igraph_vector_int_init(&neighbors, 0);
-		igraph_neighbors(connection_graph, &neighbors, a, IGRAPH_OUT);
+		igraph_neighbors(connection_graph, &neighbors, a, IGRAPH_OUT, IGRAPH_LOOPS_ONCE, IGRAPH_NO_MULTIPLE);
 
 		for (int ni = 0; ni < num_neighbors; ni++) {
 			// get the neighbor and it's util object
@@ -229,6 +238,9 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		} else {
 			params.util_obj_intf.copy(util_objs[a], util_obj_scores[chosen_util_obj_index].obj);
 		}
+
+		// update vertex utility
+		SETVAN(connection_graph, "utility", a, params.util_obj_intf.get_utility(util_objs[a]));
 
 	}
 }
@@ -363,11 +375,60 @@ void default_csv_stats_info(FILE* f, void* stats_info_ptr) {
 	}
 }
 
+// statistics collection via saving graph snapshots
+
+void* graphwrite_empty_stats_info(int stride, char* file_prefix) {
+	graphwrite_stats_info_t* gsi = igraph_malloc(sizeof(graphwrite_stats_info_t));
+	gsi->current_gen = 0;
+	gsi->stride = stride;
+	gsi->file_prefix = file_prefix;
+
+	return gsi;
+}
+
+void graphwrite_reset_stats_info(void* stats_info) {
+	graphwrite_stats_info_t* gsi = (graphwrite_stats_info_t*) stats_info;
+	gsi->current_gen = 0;
+}
+
+void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) {
+	// suppress unused parameter
+	(void) utility;
+
+
+	graphwrite_stats_info_t* gsi = (graphwrite_stats_info_t*) stats_info;
+	sbsc_t* the_sbsc = (sbsc_t*) sbsc;
+
+	if (gsi->current_gen % gsi->stride == 0) {
+		// open file with correct name
+		char* filename;
+		asprintf(&filename, "%s%d.graphml", gsi->file_prefix, gsi->current_gen);
+		FILE* f = fopen(filename, "w");
+
+		// write the graph
+		igraph_write_graph_graphml(
+			the_sbsc->best_connection_graph,
+			f,
+			false
+		);
+
+		// close file and free up resources
+		fclose(f);
+		free(filename);
+	}
+
+	gsi->current_gen++;
+}
+
+void graphwrite_destroy_stats_info(void* stats_info) {
+	igraph_free(stats_info);
+}
+
 // run the experiment
 
 void run_sbsc(sbsc_t* s) {
 	for (int egi = 0; egi < s->params.rounds_evolve_graph; egi++) {
-		
+
 		// rounds of opinion exchange
 		for (int oei = 0; oei < s->params.rounds_opinion_exchange; oei++) {
 			

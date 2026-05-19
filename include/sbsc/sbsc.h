@@ -71,6 +71,17 @@ void default_destroy_stats_info(void*);
 void default_print_stats_info(void*);
 void default_csv_stats_info(FILE* f, void* stats_info_ptr);
 
+typedef struct graphwrite_stats_info {
+	int current_gen;
+	int stride;
+	char* file_prefix;
+} graphwrite_stats_info_t;
+
+void* graphwrite_empty_stats_info(int stride, char* file_prefix);
+void graphwrite_reset_stats_info(void* stats_info);
+void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility);
+void graphwrite_destroy_stats_info(void*);
+
 void run_sbsc(sbsc_t* s);
 
 #endif

@@ -4,6 +4,56 @@ system dependencies:
 - igraph
 - 
 
+*2026-05-19:*
+
+-todo
+    - x track utility of each vertex as an igraph "weight" attribute
+    - use same starting opinions for each iteration of network
+    - keep copy of full graph
+    - x give unheld opinions some baseline utility
+- notes
+    - using igraph_cattribute to add weights (tracking utilities) to nodes
+    - looks like softmax_decide handles choosing unheld opinions (returns -1 when choosing something outside passed values)
+    - using same starting opinion boils down to replacing initialize_util_objs call in run_sbsc
+    - graph file formats which support arbitrary vertex attributes
+        - graphml
+        - gml
+    - I'll go with gml, it seems more terse and flexible
+    - actually, graphml seems more widely supported (e.g. online viewers), so I'll try it instead.
+
+
+
+*2026-05-12:*
+- don't start with new random configurations for each new network? so agents start off with same opinion each time
+- print out the graphs every x generations
+    - make sure it includes the starting utilities?
+- reduce number of opinions? to 10 or so
+    - if stick with 50, allow unheld opinions to show up
+- something to allow unheld opinions to pop into existence?
+    - agents assume mean utility for unheld opinions
+    - should be fine if seeded random
+
+
+*2025-09-24:*
+- todo:
+    - multiple starting configurations (10) of opinion exchange, compare average of average opinions when deciding whether to adopt evolution
+        - add # starting configs as parameter
+        - modify run_sbsc and other relevant functions to try opinion exchange for different initializations before evolving graph
+        - update collect_statistics to take generation and initialization # as parameters
+
+
+*2025-08-18:*
+- take average of average utilities after opinion exchanges with different starting configs before deciding whether to evolve network? 10 starting configs or so
+- still need to parallelize
+- reduce variability of starting opinions?
+- other ways of assigning opinions such that all opinions guaranteed to appear?
+    - decrease variability/generality, but increase consistency?
+- try lowering number rounds of opinion exchange?
+- try to collect statistics for internal runs.
+    - change in average utility from untweaked round after exchange and tweaked round after exchange
+- google doc to share design decisions
+- verify that network comparisons start with the same initialization
+
 *2025-07-28:*
 - todo: reimplement softmax_decide to simulating having some additional number of options with some value
 - ^ was quick to do, but utility still doesn't seem to reliably increase over time.
