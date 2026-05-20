@@ -4,12 +4,17 @@ system dependencies:
 - igraph
 - 
 
+*2025-05-20:*
+
+- one run of main_ints takes about 12 seconds right now
+- still no clear steady increase in average utility as expected, but maybe moving average increases? based on plot and squinting really hard
+
 *2026-05-19:*
 
 -todo
     - x track utility of each vertex as an igraph "weight" attribute
     - use same starting opinions for each iteration of network
-    - keep copy of full graph
+    - x keep copy of full graph
     - x give unheld opinions some baseline utility
 - notes
     - using igraph_cattribute to add weights (tracking utilities) to nodes
@@ -20,8 +25,7 @@ system dependencies:
         - gml
     - I'll go with gml, it seems more terse and flexible
     - actually, graphml seems more widely supported (e.g. online viewers), so I'll try it instead.
-
-
+    - actually, both seem to have similar support. sticking with graphml though as igraph specifically recommends it over dot format
 
 *2026-05-12:*
 - don't start with new random configurations for each new network? so agents start off with same opinion each time

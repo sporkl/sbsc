@@ -33,19 +33,28 @@ igraph_error_t initialize_graph(igraph_t* connection_graph, int num_agents, doub
 	return IGRAPH_SUCCESS;
 }
 
-// initialize utility objects
-void initialize_util_objs(sbsc_t* s) {
+// resets util_objs of main connection graph to template
+void reset_util_objs(sbsc_t* s) {
 	for (int a = 0; a < s->params.num_agents; a++) {
-		s->params.util_obj_intf.init_random(s->util_objs[a]);
-		s->params.util_obj_intf.copy(s->prev_util_objs[a], s->util_objs[a]);
-		s->params.util_obj_intf.copy(s->best_util_objs[a], s->util_objs[a]);
-		s->params.util_obj_intf.copy(s->prev_best_util_objs[a], s->util_objs[a]);
+		s->params.util_obj_intf.copy(s->util_objs[a], s->template_util_objs[a]);
+		s->params.util_obj_intf.copy(s->prev_util_objs[a], s->template_util_objs[a]);
+		s->params.util_obj_intf.copy(s->best_util_objs[a], s->template_util_objs[a]);
+		s->params.util_obj_intf.copy(s->prev_best_util_objs[a], s->template_util_objs[a]);
 
 		SETVAN(s->connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->util_objs[a]));
 		SETVAN(s->best_connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->best_util_objs[a]));
 	}
-
 }
+
+// initialize utility objects
+void initialize_util_objs(sbsc_t* s) {
+	for (int a = 0; a < s->params.num_agents; a++) {
+		s->params.util_obj_intf.init_random(s->template_util_objs[a]);
+	}
+
+	reset_util_objs(s);
+}
+
 
 void free_array_objs(int len, void** objs, void (*destroy)(void*)) {
 	for (int i = 0; i < len; i++) {
@@ -58,20 +67,20 @@ sbsc_t* create_sbsc(sbsc_params_t params) {
 	// make sure have access to weight attributes
 	igraph_set_attribute_table(&igraph_cattribute_table);
 
-	// initialize the graph
+	// allocate the graph
 	igraph_t* connection_graph = igraph_malloc(sizeof(igraph_t));
-	initialize_graph(connection_graph, params.num_agents, params.connection_probability);
 	
-	// initialize "best" graph
+	// allocate "best" graph
 	igraph_t* best_connection_graph = igraph_malloc(sizeof(igraph_t));
-	igraph_copy(best_connection_graph, connection_graph);
 
 	// initialize the utility objects
+	void** template_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
 	void** util_objs = igraph_malloc(params.num_agents * sizeof(void*));
 	void** prev_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
 	void** best_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
 	void** prev_best_util_objs = igraph_malloc(params.num_agents * sizeof(void*));
 	for (int a = 0; a < params.num_agents; a++) {
+		template_util_objs[a] = params.util_obj_intf.allocate();
 		util_objs[a] = params.util_obj_intf.allocate();
 		prev_util_objs[a] = params.util_obj_intf.allocate();
 		best_util_objs[a] = params.util_obj_intf.allocate();
@@ -84,13 +93,12 @@ sbsc_t* create_sbsc(sbsc_params_t params) {
 	new_sbsc->params = params;
 	new_sbsc->connection_graph = connection_graph;
 	new_sbsc->best_connection_graph = best_connection_graph;
+	new_sbsc->template_util_objs = template_util_objs;
 	new_sbsc->util_objs = util_objs;
 	new_sbsc->prev_util_objs = prev_util_objs;
 	new_sbsc->best_util_objs = best_util_objs;
 	new_sbsc->prev_best_util_objs = prev_best_util_objs;
 	new_sbsc->stats_info = params.empty_stats_info;
-
-	initialize_util_objs(new_sbsc);
 
 	return new_sbsc;
 }
@@ -100,11 +108,13 @@ void destroy_sbsc(sbsc_t* s) {
 	igraph_free(s->connection_graph);
 	igraph_free(s->best_connection_graph);
 
+	free_array_objs(s->params.num_agents, s->template_util_objs, s->params.util_obj_intf.destroy);
 	free_array_objs(s->params.num_agents, s->util_objs, s->params.util_obj_intf.destroy);
 	free_array_objs(s->params.num_agents, s->prev_util_objs, s->params.util_obj_intf.destroy);
 	free_array_objs(s->params.num_agents, s->best_util_objs, s->params.util_obj_intf.destroy);
 	free_array_objs(s->params.num_agents, s->prev_best_util_objs, s->params.util_obj_intf.destroy);
 
+	igraph_free(s->template_util_objs);
 	igraph_free(s->util_objs);
 	igraph_free(s->prev_util_objs);
 	igraph_free(s->best_util_objs);
@@ -427,6 +437,14 @@ void graphwrite_destroy_stats_info(void* stats_info) {
 // run the experiment
 
 void run_sbsc(sbsc_t* s) {
+
+	// initialize the experiment
+	initialize_graph(s->connection_graph, s->params.num_agents, s->params.connection_probability);
+	igraph_copy(s->best_connection_graph, s->connection_graph);
+
+	initialize_util_objs(s);
+
+	// evolve the graph
 	for (int egi = 0; egi < s->params.rounds_evolve_graph; egi++) {
 
 		// rounds of opinion exchange
@@ -450,6 +468,6 @@ void run_sbsc(sbsc_t* s) {
 		evolve_graph(s);
 
 		// reset opinions
-		initialize_util_objs(s);
+		reset_util_objs(s);
 	}
 }

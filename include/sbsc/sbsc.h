@@ -39,7 +39,9 @@ typedef struct sbsc {
 	sbsc_params_t params;
 	igraph_t* connection_graph;
 	igraph_t* best_connection_graph;
-	void** util_objs; // array of pointers to utility objects
+ // array of pointers to utility objects
+	void** template_util_objs;
+	void** util_objs;
 	void** prev_util_objs;
 	void** best_util_objs;
 	void** prev_best_util_objs;
