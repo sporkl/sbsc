@@ -84,6 +84,16 @@ void graphwrite_reset_stats_info(void* stats_info);
 void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility);
 void graphwrite_destroy_stats_info(void*);
 
+typedef struct default_and_graphwrite_stats_info {
+	default_stats_info_t* dsi;
+	graphwrite_stats_info_t* gsi;
+} default_and_graphwrite_stats_info_t;
+
+void* default_and_graphwrite_empty_stats_info(int num_rounds, int stride, char* file_prefix);
+void default_and_graphwrite_reset_stats_info(void* stats_info);
+void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility);
+void default_and_graphwrite_destroy_stats_info(void* stats_info);
+
 void run_sbsc(sbsc_t* s);
 
 #endif

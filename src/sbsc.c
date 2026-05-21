@@ -405,7 +405,6 @@ void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) 
 	// suppress unused parameter
 	(void) utility;
 
-
 	graphwrite_stats_info_t* gsi = (graphwrite_stats_info_t*) stats_info;
 	sbsc_t* the_sbsc = (sbsc_t*) sbsc;
 
@@ -432,6 +431,59 @@ void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) 
 
 void graphwrite_destroy_stats_info(void* stats_info) {
 	igraph_free(stats_info);
+}
+
+// statistics collection of both default and graphwrite
+void* default_and_graphwrite_empty_stats_info(int num_rounds, int stride, char* file_prefix) {
+	default_and_graphwrite_stats_info_t* dgsi = igraph_malloc(sizeof(default_and_graphwrite_stats_info_t));
+
+	dgsi->dsi = default_empty_stats_info(num_rounds, stride);
+	dgsi->gsi = graphwrite_empty_stats_info(stride, file_prefix);
+
+	return dgsi;
+}
+
+void default_and_graphwrite_reset_stats_info(void* stats_info) {
+
+	default_and_graphwrite_stats_info_t* dgsi = (default_and_graphwrite_stats_info_t*) stats_info;
+
+	default_reset_stats_info(dgsi->dsi);
+	graphwrite_reset_stats_info(dgsi->gsi);
+
+}
+
+void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) {
+
+	default_and_graphwrite_stats_info_t* dgsi = (default_and_graphwrite_stats_info_t*) stats_info;
+
+	default_collect_statistics(dgsi->dsi, sbsc, utility);
+	graphwrite_collect_statistics(dgsi->gsi, sbsc, utility);
+
+	// if this is the last collect_statistics, print csv
+	if ((dgsi->dsi->current_gen / dgsi->dsi->stride) >= dgsi->dsi->data_len) {
+		
+		char* filename;
+		asprintf(&filename, "%s.csv", dgsi->gsi->file_prefix);
+		FILE* f = fopen(filename, "w");
+
+		default_csv_stats_info(f, dgsi->dsi);
+
+		fclose(f);
+		free(filename);
+	}
+
+
+}
+
+void default_and_graphwrite_destroy_stats_info(void* stats_info) {
+
+	default_and_graphwrite_stats_info_t* dgsi = (default_and_graphwrite_stats_info_t*) stats_info;
+
+	default_destroy_stats_info(dgsi->dsi);
+	graphwrite_destroy_stats_info(dgsi->gsi);
+
+	igraph_free(dgsi);
+
 }
 
 // run the experiment
