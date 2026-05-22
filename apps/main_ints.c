@@ -41,52 +41,48 @@ int main(void) {
 	// seed the rng for reproducible results
 	igraph_rng_seed(igraph_rng_default(), 2025);
 
-	// params
-	sbsc_params_t main_ints_params = {
-		.util_obj_intf = int_radius_five,
-		.num_agents = 50,
-		.gamma = 1.0,
-		.evidence_integration = 0.0,
-		.connection_probability = 0.5,
-		.edge_toggle_probability = 0.05,
-		.rounds_opinion_exchange = 50,
-		.rounds_evolve_graph = 5001,
-		.empty_stats_info = default_empty_stats_info(5001, 50),
-		.reset_stats_info = default_reset_stats_info,
-		.collect_statistics = default_collect_statistics,
-		.destroy_stats_info = default_destroy_stats_info,
-	};
-
-	sbsc_t* sbsc = create_sbsc(main_ints_params);
-
-	// string for storing filename
-	// should be less than 50 chars
-	char* filename = malloc(sizeof(char) * 50);
-
-	for (int run = 0; run < 1; run++) {
+	// iterate over starting degrees
+	for (int init_deg_percent = 10; init_deg_percent <= 100; init_deg_percent += 10) {
 		
-		// reset stats info
-		sbsc->params.reset_stats_info(sbsc->stats_info);
+		// 30 samples for each starting degree, so 300 total
+		for (int sample = 0; sample < 30; sample++) {
 
-		// run the sbsc model
-		run_sbsc(sbsc);
+			// base filename prefix for storing data
+			char* file_prefix;
+			asprintf(&file_prefix, "main_ints_initdegpercent%d_sample%d", init_deg_percent, sample);
 
-		// write out graph
-		sprintf(filename, "main_ints_graph_%d.dot", run);
-		FILE* graphfile = fopen(filename, "w");
-		igraph_write_graph_dot(sbsc->best_connection_graph, graphfile);
-		fclose(graphfile);
+			// params
+			sbsc_params_t main_ints_params = {
+				.util_obj_intf = int_radius_five,
+				.num_agents = 50,
+				.gamma = 1.0,
+				.evidence_integration = 0.0,
+				.connection_probability = ((double) init_deg_percent) / 100.0,
+				.edge_toggle_probability = 0.05,
+				.rounds_opinion_exchange = 50,
+				.rounds_evolve_graph = 3001,
+				.empty_stats_info = default_and_graphwrite_empty_stats_info(3001, 50, file_prefix),
+				.reset_stats_info = default_and_graphwrite_reset_stats_info,
+				.collect_statistics = default_and_graphwrite_collect_statistics,
+				.destroy_stats_info = default_and_graphwrite_destroy_stats_info,
+			};
 
-		sprintf(filename, "main_ints_stats_%d.csv", run);
-		FILE* statsfile = fopen(filename, "w");
-		default_csv_stats_info(statsfile, sbsc->stats_info);
-		fclose(statsfile);
+			// create the sbsc
+			sbsc_t* sbsc = create_sbsc(main_ints_params);
+			sbsc->params.reset_stats_info(sbsc->stats_info);
 
+			// run the sbsc model
+			run_sbsc(sbsc);
+
+			// destroy the sbsc
+			destroy_sbsc(sbsc);
+
+			// free file_prefix
+			free(file_prefix);
+
+		}
 	}
 
-	free(filename);
-
-	destroy_sbsc(sbsc);
-	
 	return 0;
 }
+

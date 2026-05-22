@@ -105,6 +105,10 @@ sbsc_t* create_sbsc(sbsc_params_t params) {
 
 // deallocation and cleanup
 void destroy_sbsc(sbsc_t* s) {
+	
+	igraph_destroy(s->connection_graph);
+	igraph_destroy(s->best_connection_graph);
+
 	igraph_free(s->connection_graph);
 	igraph_free(s->best_connection_graph);
 
@@ -219,9 +223,13 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 				util_obj_scores_len++;
 			}
 	
+
 			uos->score += params.util_obj_intf.get_utility(uos->obj);
 
 		}
+
+		sc_map_term_intv(&util_obj_score_map);
+		igraph_vector_int_destroy(&neighbors);
 		
 		// normalize evidence
 		// need to update this if add different weights
@@ -274,6 +282,7 @@ void evolve_graph(sbsc_t* s) {
 
 	// if the new graph is an improvement, update the prev graph
 	if (current_average_utility > best_average_utility) {
+		igraph_destroy(s->best_connection_graph);
 		igraph_copy(s->best_connection_graph, s->connection_graph);
 		best_average_utility = current_average_utility;
 	}
@@ -284,6 +293,7 @@ void evolve_graph(sbsc_t* s) {
 	//// generate a new current graph by toggling edges according to probability
 	
 	// start with the previous best graph
+	igraph_destroy(s->connection_graph);
 	igraph_copy(s->connection_graph, s->best_connection_graph);
 
 	// figure out how many edges to toggle (binomial distribution)
@@ -307,6 +317,7 @@ void evolve_graph(sbsc_t* s) {
 			igraph_es_t edge_selector;
 			igraph_es_1(&edge_selector, eid);
 			igraph_delete_edges(s->connection_graph, edge_selector);
+			igraph_es_destroy(&edge_selector);
 		}
 
 	}
@@ -411,7 +422,7 @@ void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) 
 	if (gsi->current_gen % gsi->stride == 0) {
 		// open file with correct name
 		char* filename;
-		asprintf(&filename, "%s%d.graphml", gsi->file_prefix, gsi->current_gen);
+		asprintf(&filename, "%s_gen%d.graphml", gsi->file_prefix, gsi->current_gen);
 		FILE* f = fopen(filename, "w");
 
 		// write the graph
@@ -459,8 +470,10 @@ void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, flo
 	default_collect_statistics(dgsi->dsi, sbsc, utility);
 	graphwrite_collect_statistics(dgsi->gsi, sbsc, utility);
 
+	sbsc_t* the_sbsc = (sbsc_t*) sbsc;
+
 	// if this is the last collect_statistics, print csv
-	if ((dgsi->dsi->current_gen / dgsi->dsi->stride) >= dgsi->dsi->data_len) {
+	if (dgsi->dsi->current_gen >= the_sbsc->params.rounds_evolve_graph) {
 		
 		char* filename;
 		asprintf(&filename, "%s.csv", dgsi->gsi->file_prefix);

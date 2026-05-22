@@ -4,10 +4,21 @@ system dependencies:
 - igraph
 - 
 
-*2025-05-20:*
+*2026-05-21:*
+- code works, but runs out of memory when doing full number of trials
+- lazy fix is to wrap it in a bash script that runs subset of trials at a time
+- okay, AI says the memory issues are:
+    - x need to run igraph_destroy on graph objects before freeing
+    - x igraph_copy assumes graphs are uninitialized
+    - x should use igraph_vector_int_destroy in update_util_objs
+    - x make sure hash map in sc terminates, undo the init
+    - x need to igraph_es_destroy edge_selectors in evolve_graph
+
+*2026-05-20:*
 
 - one run of main_ints takes about 12 seconds right now
 - still no clear steady increase in average utility as expected, but maybe moving average increases? based on plot and squinting really hard
+- probably worth running valgrind first to check if there's anything obvious. but I suspect it might be an igraph issue
 
 *2026-05-19:*
 
