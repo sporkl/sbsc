@@ -4,6 +4,16 @@ system dependencies:
 - igraph
 - 
 
+*2026-05-25:*
+- z fix self-evidence
+    - x have agents consider own opinion explicitally
+    - x prevent self-connections
+- x change parameters
+    - x 5000 generations
+    - x collect evidence every 500 generations
+- x do another main_ints run
+- run the analysis script
+
 *2026-05-21:*
 - code works, but runs out of memory when doing full number of trials
 - lazy fix is to wrap it in a bash script that runs subset of trials at a time

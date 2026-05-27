@@ -19,17 +19,6 @@ igraph_error_t initialize_graph(igraph_t* connection_graph, int num_agents, doub
 		return err;
 	}
 
-	// enforce self-connection
-	for (int a = 0; a < num_agents; a++) {
-		
-		// create the edge
-		err = igraph_add_edge(connection_graph, a, a);
-
-		if (err != IGRAPH_SUCCESS) {
-			return err;
-		}
-	}
-
 	return IGRAPH_SUCCESS;
 }
 
@@ -197,7 +186,7 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 
 		typedef struct sc_map_intv sc_map_intv_t;
 		
-		util_obj_score_t util_obj_scores[num_neighbors];
+		util_obj_score_t util_obj_scores[num_neighbors + 1]; // + 1 for own opinion
 		int util_obj_scores_len = 0;
 
 		sc_map_intv_t util_obj_score_map;
@@ -207,6 +196,15 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		igraph_vector_int_init(&neighbors, 0);
 		igraph_neighbors(connection_graph, &neighbors, a, IGRAPH_OUT, IGRAPH_LOOPS_ONCE, IGRAPH_NO_MULTIPLE);
 
+		// add own util object to hashmap
+		void* uo = prev_util_objs[a];
+		int hash = params.util_obj_intf.hash(uo);
+		util_obj_scores[util_obj_scores_len].obj = uo;
+		util_obj_scores[util_obj_scores_len].score = params.util_obj_intf.get_utility(uo);
+		sc_map_put_intv(&util_obj_score_map, hash, &(util_obj_scores[util_obj_scores_len]));
+		util_obj_scores_len++;
+
+		// add neighbor util objects to hashmaps
 		for (int ni = 0; ni < num_neighbors; ni++) {
 			// get the neighbor and it's util object
 			int n = igraph_vector_int_get(&neighbors, ni);
@@ -302,9 +300,10 @@ void evolve_graph(sbsc_t* s) {
 
 	// toggle those edges
 	for (int i = 0; i < edges_to_toggle; i++) {
-		// choose vertices
+		// choose vertices (but make sure second vertex is different from first to avoid self-loops)
 		int v1 = igraph_rng_get_integer(igraph_rng_default(), 0, s->params.num_agents - 1);
-		int v2 = igraph_rng_get_integer(igraph_rng_default(), 0, s->params.num_agents - 1);
+		int v2 = igraph_rng_get_integer(igraph_rng_default(), 0, s->params.num_agents - 2);
+		if (v2 >= v1) v2++;
 
 		// get edge id (-1 if it doesn't exist)
 		igraph_integer_t eid = -1;
