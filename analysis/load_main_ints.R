@@ -145,7 +145,7 @@ print(p)
 # ── Build file paths for samples 0–9, gen 3000 ────────────────────────────
 files <- file.path(
   data_dir,
-  paste0("main_ints_initdegpercent10_sample", 0:9, "_gen3000.graphml")
+  paste0("main_ints_initdegpercent10_sample", 0:9, "_gen5000.graphml")
 )
 for (i in seq_along(files)) {
   g <- read_graph(files[i], format = "graphml")
