@@ -4,6 +4,64 @@ system dependencies:
 - igraph
 - 
 
+*2026-06-14:*
+- should re-run existing trials with higher base_utility
+    - if evolve to have degree about 13, and assume 50% in, 50% out, then in-degree is about 7.
+    - utility on average is 25, so 25 * 7 = 175 is combined score of input objects.
+    - top utility averages out to 40, so 40 * 7 = 280 is combined score of input objects
+    - so if assume base utility 20, then 0.1 chosen for average utility, and 0.06 chosen for top utility. seems about right.
+    - should re-run with these parameters
+- determining noise levels
+    - should find formula for prob bad opinion scores higher than better opinion.
+        - parametrized by "noise radius"
+        - assume base utilities lie in range 1-50
+
+*2026-06-10:*
+- dr. goldstone's observations
+    - modularity consistenly decreases
+    - number of communities noisily decreases
+    - reciprocity consistenly decreases
+    - transitivity/cluster coeff increases to 0.5
+        - ignores directed graph
+        - this is what I noticed from initial stats: 0.5 of neighbors are connected to each other, if I'm interpreting correctly
+    - local triadic analysis
+        - boils down to: triadic connections with reciprocity decrease, triadic connections without reciprocity increase
+        - because graph evolution is local, local measures like this make sense 
+    - eigenvalue analysis
+        - correlation between eigenvector centrality and degree drops
+            - indicates some nodes are influential despite relatively low degree
+            - position in network is important
+        - decreasing correlation between page-rank and and degree
+            - again, nodes are influential despite relatively low degree
+            - sit downstream from good solution-finders?
+        - decreasing hub-authority correlation
+            - distinct source and sink nodes
+            - consistent with falling reciprocity
+        - spectral entropy increases after generation 1000 when degree peaks
+            - structure spread out across scales
+            - energy becomes less concentrated in top n modes (for n=1,3,5,10)
+- moving forward
+    - see how structures evolve depending on difficulty/complexity of the problem
+    - ways to tweak complexity
+        - his suggestions
+            - vary number of opinions (right now it is 50)
+            - change weight of opinions, right now it's linear weight 1 to 50 inclusive
+            - noisy utility function?
+        - my suggestion
+            - similar to 2, but change initial distribution of utilities? so lots of utilities in the 1-10 range, few in the 40-50 range.
+- my thoughts
+    - makes sense that reciprocity decreases, and non-reciprocity increases
+    - interesting that transitivity/cluster coeff increases to about 0.5; though maybe less useful as a measure b/c not directed.
+    - checking code, right now assumed utility for unheld opinions is 1, which means low chance of new opinion being chosen.
+        - I think original plan was to assume mean utility, which would be 25.0.
+    - not sure that tweaking gamma or evidence integration is important.
+        - gamma = 1, so relatively indeterminate. could ramp up to infty for full determinism. not sure if this is relevant.
+        - evidence integration is 0.0; summed (so popularity is more important) rather than averaged (so utility is more important)
+        - evidence integration being 0.0 is "harder", which is good.
+    - right now, utility is linearly weighted.
+    - I like varying number of opinions and initial distribution of opinions as a way forward.
+
+
 *2026-05-25:*
 - z fix self-evidence
     - x have agents consider own opinion explicitally
