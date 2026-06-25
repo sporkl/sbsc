@@ -4,6 +4,22 @@ system dependencies:
 - igraph
 - 
 
+*2026-06-25:*
+- working on doing one iteration with "ultrafine" stats-info
+    - collect data every round for both previous evolution and current evolution
+    - okay, so statistics collection only has access to best graph, but still have access to both util_objs arrays
+    - does have access to both graphs if there was NOT an upgrade
+    - stats about previous best graph can be remembered by looking up previous result though
+
+
+*2026-06-22:*
+- notes from dr. goldstone about re-run
+    - why are there changes after generation 1000, when utility does not have systematic activity?
+    - noise radius upper limit of 10 seems good for next run
+- own thoughts
+    - I think changes are potentially because of random differences in chosen opinions during opinion exchange
+    - would be good to do a run where collect data every round, and for both previous evolution and current evolution, to demonstrate directly
+
 *2026-06-14:*
 - should re-run existing trials with higher base_utility
     - if evolve to have degree about 13, and assume 50% in, 50% out, then in-degree is about 7.

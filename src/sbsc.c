@@ -352,7 +352,7 @@ void default_reset_stats_info(void* stats_info) {
 
 }
 
-void default_collect_statistics(void* si, void* sbsc, float utility) {
+void default_collect_statistics(void* si, void* sbsc, double utility) {
 	default_stats_info_t* stats_info = (default_stats_info_t*) si;
 	sbsc_t* s = (sbsc_t*) sbsc;
 
@@ -411,7 +411,7 @@ void graphwrite_reset_stats_info(void* stats_info) {
 	gsi->current_gen = 0;
 }
 
-void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) {
+void graphwrite_collect_statistics(void* stats_info, void* sbsc, double utility) {
 	// suppress unused parameter
 	(void) utility;
 
@@ -462,7 +462,7 @@ void default_and_graphwrite_reset_stats_info(void* stats_info) {
 
 }
 
-void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility) {
+void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, double utility) {
 
 	default_and_graphwrite_stats_info_t* dgsi = (default_and_graphwrite_stats_info_t*) stats_info;
 

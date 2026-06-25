@@ -31,7 +31,7 @@ typedef struct sbsc_params {
 	int rounds_evolve_graph;
 	void* empty_stats_info;
 	void (*reset_stats_info)(void* stats_info);
-	void (*collect_statistics)(void* stats_info, void* sbsc, float utility);
+	void (*collect_statistics)(void* stats_info, void* sbsc, double utility);
 	void (*destroy_stats_info)(void* stats_info);
 } sbsc_params_t;
 
@@ -68,7 +68,7 @@ typedef struct default_stats_info {
 
 void* default_empty_stats_info(int num_rounds, int stride);
 void default_reset_stats_info(void* stats_info);
-void default_collect_statistics(void* stats_info, void* sbsc, float utility);
+void default_collect_statistics(void* stats_info, void* sbsc, double utility);
 void default_destroy_stats_info(void*);
 void default_print_stats_info(void*);
 void default_csv_stats_info(FILE* f, void* stats_info_ptr);
@@ -81,7 +81,7 @@ typedef struct graphwrite_stats_info {
 
 void* graphwrite_empty_stats_info(int stride, char* file_prefix);
 void graphwrite_reset_stats_info(void* stats_info);
-void graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility);
+void graphwrite_collect_statistics(void* stats_info, void* sbsc, double utility);
 void graphwrite_destroy_stats_info(void*);
 
 typedef struct default_and_graphwrite_stats_info {
@@ -91,7 +91,7 @@ typedef struct default_and_graphwrite_stats_info {
 
 void* default_and_graphwrite_empty_stats_info(int num_rounds, int stride, char* file_prefix);
 void default_and_graphwrite_reset_stats_info(void* stats_info);
-void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, float utility);
+void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, double utility);
 void default_and_graphwrite_destroy_stats_info(void* stats_info);
 
 void run_sbsc(sbsc_t* s);
