@@ -15,6 +15,9 @@ add_executable(initdeg12_ints_v2_ultrafine initdeg12_ints_v2_ultrafine.c)
 target_link_libraries(initdeg12_ints_v2_ultrafine PRIVATE sbsc)
 target_link_libraries(initdeg12_ints_v2_ultrafine PRIVATE igraph::igraph)
 
+add_executable(initdeg12_ints_noisy initdeg12_ints_noisy.c)
+target_link_libraries(initdeg12_ints_noisy  PRIVATE sbsc)
+target_link_libraries(initdeg12_ints_noisy  PRIVATE igraph::igraph)
 
 if(MSVC)
   target_compile_options(sbsc PRIVATE /W4 /WX)
