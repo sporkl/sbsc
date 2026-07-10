@@ -30,8 +30,8 @@ void reset_util_objs(sbsc_t* s) {
 		s->params.util_obj_intf.copy(s->best_util_objs[a], s->template_util_objs[a]);
 		s->params.util_obj_intf.copy(s->prev_best_util_objs[a], s->template_util_objs[a]);
 
-		SETVAN(s->connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->util_objs[a]));
-		SETVAN(s->best_connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->best_util_objs[a]));
+		/* SETVAN(s->connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->util_objs[a])); */
+		/* SETVAN(s->best_connection_graph, "utility", a, s->params.util_obj_intf.get_utility(s->best_util_objs[a])); */
 	}
 }
 
@@ -54,7 +54,7 @@ void free_array_objs(int len, void** objs, void (*destroy)(void*)) {
 sbsc_t* create_sbsc(sbsc_params_t params) {
 
 	// make sure have access to weight attributes
-	igraph_set_attribute_table(&igraph_cattribute_table);
+	/* igraph_set_attribute_table(&igraph_cattribute_table); */
 
 	// allocate the graph
 	igraph_t* connection_graph = igraph_malloc(sizeof(igraph_t));
@@ -116,6 +116,29 @@ void destroy_sbsc(sbsc_t* s) {
 	s->params.destroy_stats_info(s->stats_info);
 
 	igraph_free(s);
+}
+
+// exchange opinions
+
+void exchange_opinions(sbsc_t* s) {
+
+	// rounds of opinion exchange
+	for (int oei = 0; oei < s->params.rounds_opinion_exchange; oei++) {
+		
+		// swap current and prev util objs
+		void** temp;
+		temp = s->prev_util_objs;
+		s->prev_util_objs = s->util_objs;
+		s->util_objs = temp;
+
+		temp = s->prev_best_util_objs;
+		s->prev_best_util_objs = s->best_util_objs;
+		s->best_util_objs = temp;
+
+		update_util_objs(s->params, s->connection_graph, s->util_objs, s->prev_util_objs);
+		update_util_objs(s->params, s->best_connection_graph, s->best_util_objs, s->prev_best_util_objs);
+	}
+
 }
 
 // hold a util obj and score in a hash table
@@ -256,7 +279,7 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		}
 
 		// update vertex utility
-		SETVAN(connection_graph, "utility", a, params.util_obj_intf.get_utility(util_objs[a]));
+		/* SETVAN(connection_graph, "utility", a, params.util_obj_intf.get_utility(util_objs[a])); */
 
 	}
 }
@@ -321,6 +344,30 @@ void evolve_graph(sbsc_t* s) {
 
 	}
 
+}
+
+// run the experiment
+
+void run_sbsc(sbsc_t* s) {
+
+	// initialize the experiment
+	initialize_graph(s->connection_graph, s->params.num_agents, s->params.connection_probability);
+	igraph_copy(s->best_connection_graph, s->connection_graph);
+
+	initialize_util_objs(s);
+
+	// evolve the graph
+	for (int egi = 0; egi < s->params.rounds_evolve_graph; egi++) {
+
+		// exchange opinions
+		exchange_opinions(s);
+
+		// evolve the graph
+		evolve_graph(s);
+
+		// reset opinions
+		reset_util_objs(s);
+	}
 }
 
 // default statistics collection
@@ -498,40 +545,3 @@ void default_and_graphwrite_destroy_stats_info(void* stats_info) {
 
 }
 
-// run the experiment
-
-void run_sbsc(sbsc_t* s) {
-
-	// initialize the experiment
-	initialize_graph(s->connection_graph, s->params.num_agents, s->params.connection_probability);
-	igraph_copy(s->best_connection_graph, s->connection_graph);
-
-	initialize_util_objs(s);
-
-	// evolve the graph
-	for (int egi = 0; egi < s->params.rounds_evolve_graph; egi++) {
-
-		// rounds of opinion exchange
-		for (int oei = 0; oei < s->params.rounds_opinion_exchange; oei++) {
-			
-			// swap current and prev util objs
-			void** temp;
-			temp = s->prev_util_objs;
-			s->prev_util_objs = s->util_objs;
-			s->util_objs = temp;
-
-			temp = s->prev_best_util_objs;
-			s->prev_best_util_objs = s->best_util_objs;
-			s->best_util_objs = temp;
-
-			update_util_objs(s->params, s->connection_graph, s->util_objs, s->prev_util_objs);
-			update_util_objs(s->params, s->best_connection_graph, s->best_util_objs, s->prev_best_util_objs);
-		}
-
-		// evolve the graph
-		evolve_graph(s);
-
-		// reset opinions
-		reset_util_objs(s);
-	}
-}

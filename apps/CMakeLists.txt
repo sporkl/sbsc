@@ -3,6 +3,7 @@ target_link_libraries(basic_ints PRIVATE sbsc)
 
 find_package(igraph REQUIRED)
 
+
 add_executable(main_ints_v2 main_ints_v2.c)
 target_link_libraries(main_ints_v2 PRIVATE sbsc)
 target_link_libraries(main_ints_v2 PRIVATE igraph::igraph)
@@ -18,6 +19,10 @@ target_link_libraries(initdeg12_ints_v2_ultrafine PRIVATE igraph::igraph)
 add_executable(initdeg12_ints_noisy initdeg12_ints_noisy.c)
 target_link_libraries(initdeg12_ints_noisy  PRIVATE sbsc)
 target_link_libraries(initdeg12_ints_noisy  PRIVATE igraph::igraph)
+
+add_executable(initdeg12_ints_v2_ratchet initdeg12_ints_v2_ratchet.c)
+target_link_libraries(initdeg12_ints_v2_ratchet PRIVATE sbsc)
+target_link_libraries(initdeg12_ints_v2_ratchet PRIVATE igraph::igraph)
 
 if(MSVC)
   target_compile_options(sbsc PRIVATE /W4 /WX)

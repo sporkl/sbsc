@@ -48,11 +48,20 @@ typedef struct sbsc {
 	void* stats_info;
 } sbsc_t;
 
+igraph_error_t initialize_graph(igraph_t*, int, double);
+
+void initialize_util_objs(sbsc_t* s);
+void reset_util_objs(sbsc_t* s);
+
 sbsc_t* create_sbsc(sbsc_params_t);
 void destroy_sbsc(sbsc_t*);
 
+void exchange_opinions(sbsc_t* s);
+
 void update_util_objs(sbsc_params_t, igraph_t*, void** util_objs, void** prev_util_objs);
 void evolve_graph(sbsc_t*);
+
+void run_sbsc(sbsc_t* s);
 
 typedef struct default_stats_info {
 	int current_gen;
@@ -93,7 +102,5 @@ void* default_and_graphwrite_empty_stats_info(int num_rounds, int stride, char* 
 void default_and_graphwrite_reset_stats_info(void* stats_info);
 void default_and_graphwrite_collect_statistics(void* stats_info, void* sbsc, double utility);
 void default_and_graphwrite_destroy_stats_info(void* stats_info);
-
-void run_sbsc(sbsc_t* s);
 
 #endif
