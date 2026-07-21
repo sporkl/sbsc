@@ -13,9 +13,10 @@ library(stringr)
 library(ggplot2)
 library(tidyr)
 library(igraph)
+# also requires RSpectra and Matrix
 
 # ── 1. Point this at the data folder ────────────────────────────────────────
-data_dir <- "../data/initdeg12_ints"   # update if stored elsewhere
+data_dir <- "../data/initdeg12_ints_v2"   # update if stored elsewhere
 
 # ── 2. Find all CSV files ─────────────────────────────────────────────────────
 csv_files <- list.files(
