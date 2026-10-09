@@ -10,7 +10,6 @@
 # The resulting data frame adds two columns parsed from the filename:
 #   init_deg_pct  – initial edge density (10, 20, …, 100)
 #   sample        – replication index (0–29)
-
 library(dplyr)   # for bind_rows, mutate
 library(stringr) # for str_match
 library(ggplot2)
@@ -141,6 +140,40 @@ p <- ggplot(measures_summary,
   theme_minimal(base_size = 13) +
   theme(legend.position = "right")
 print(p)
+
+# in-degree out-degree correlation by generation
+graphml_files <- list.files(
+	path = data_dir,
+	pattern = "^initdeg12_ints_sample\\d+_gen\\d+\\.graphml$",
+	full.names = TRUE
+)
+
+read_graphml_in_out_degrees <- function(path) {
+	fname <- basename(path)
+	sample_matches <- str_match(fname, "sample(\\d+)")
+	generation_matches <- str_match(fname, "gen(\\d+)")
+
+	g <- read_graph(path, format = "graphml")
+	in_degrees <- degree(g, mode = "in")
+	out_degrees <- degree(g, mode = "out")
+
+	correlation <- cor(in_degrees, out_degrees, use = "complete.obs")
+
+	df <- data.frame(in_out_deg_correlation = correlation)
+	df$sample <- as.integer(sample_matches[, 2])
+	df$generation <- as.integer(generation_matches[, 2])
+
+	df
+}
+
+all_correlations <- bind_rows(lapply(graphml_files, read_graphml_in_out_degrees))
+print(head(all_correlations))
+
+mean_correlations <- all_correlations |>
+	group_by(generation) |>
+	summarize(mean_in_out_deg_correlation = mean(in_out_deg_correlation))
+
+ggplot(mean_correlations, aes(x = generation, y = mean_in_out_deg_correlation)) + geom_line()
 
 #Show some of the graphs
 # ── Build file paths for samples 0–9, gen 3000 ────────────────────────────
