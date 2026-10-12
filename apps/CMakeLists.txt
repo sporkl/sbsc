@@ -24,6 +24,10 @@ add_executable(initdeg12_ints_v2_ratchet initdeg12_ints_v2_ratchet.c)
 target_link_libraries(initdeg12_ints_v2_ratchet PRIVATE sbsc)
 target_link_libraries(initdeg12_ints_v2_ratchet PRIVATE igraph::igraph)
 
+add_executable(initdeg12_ints_v2_averaged_evidence initdeg12_ints_v2_averaged_evidence.c)
+target_link_libraries(initdeg12_ints_v2_averaged_evidence PRIVATE sbsc)
+target_link_libraries(initdeg12_ints_v2_averaged_evidence PRIVATE igraph::igraph)
+
 if(MSVC)
   target_compile_options(sbsc PRIVATE /W4 /WX)
 else()
