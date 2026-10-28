@@ -17,7 +17,7 @@ library(tidyr)
 library(igraph)
 
 # ── 1. Point this at your data folder ────────────────────────────────────────
-data_dir <- "../data/initdeg12_ints_v2_averaged_evidence"
+data_dir <- "../data/initdeg12_ints_averaged_evidence_v3"
 
 # ── 2. Find all CSV files ─────────────────────────────────────────────────────
 csv_files <- list.files(

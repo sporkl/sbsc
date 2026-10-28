@@ -145,6 +145,7 @@ void exchange_opinions(sbsc_t* s) {
 typedef struct util_obj_score {
 	void* obj;
 	double score;
+	int count; // how many nodes hold this util object, used for evidence integration
 } util_obj_score_t;
 
 // returns chosen index, or -1 if chooses "extra evidence"
@@ -224,6 +225,7 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		int hash = params.util_obj_intf.hash(uo);
 		util_obj_scores[util_obj_scores_len].obj = uo;
 		util_obj_scores[util_obj_scores_len].score = params.util_obj_intf.get_utility(uo);
+		util_obj_scores[util_obj_scores_len].count = 1;
 		sc_map_put_intv(&util_obj_score_map, hash, &(util_obj_scores[util_obj_scores_len]));
 		util_obj_scores_len++;
 
@@ -239,13 +241,14 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 			if (!sc_map_found(&util_obj_score_map)) {
 				util_obj_scores[util_obj_scores_len].obj = uo;
 				util_obj_scores[util_obj_scores_len].score = 0.0;
+				util_obj_scores[util_obj_scores_len].count = 0;
 				sc_map_put_intv(&util_obj_score_map, hash, &(util_obj_scores[util_obj_scores_len]));
 				uos = &(util_obj_scores[util_obj_scores_len]);
 				util_obj_scores_len++;
 			}
 	
-
 			uos->score += params.util_obj_intf.get_utility(uos->obj);
+			uos->count++;
 
 		}
 
@@ -254,9 +257,9 @@ void update_util_objs(sbsc_params_t params, igraph_t* connection_graph, void** u
 		
 		// normalize evidence
 		// need to update this if add different weights
-		double normalization_denom = (params.evidence_integration * ((double) util_obj_scores_len - 1)) + 1;
 
 		for (int uoi = 0; uoi < util_obj_scores_len; uoi++) {
+			double normalization_denom = (params.evidence_integration * ((double) util_obj_scores[uoi].count - 1)) + 1;
 			util_obj_scores[uoi].score /= normalization_denom;
 		}
 
