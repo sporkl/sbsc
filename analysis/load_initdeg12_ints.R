@@ -175,6 +175,31 @@ mean_correlations <- all_correlations |>
 
 ggplot(mean_correlations, aes(x = generation, y = mean_in_out_deg_correlation)) + geom_line()
 
+# (in degree - out degree) / total degree, by generation
+
+read_graphml_in_out_factors <- function(path) {
+	fname <- basename(path)
+	sample_matches <- str_match(fname, "sample(\\d+)")
+	generation_matches <- str_match(fname, "gen(\\d+)")
+
+	g <- read_graph(path, format = "graphml")
+	in_degrees <- degree(g, mode = "in")
+	out_degrees <- degree(g, mode = "out")
+
+	in_out_factors <- (in_degrees - out_degrees) / (in_degrees + out_degrees)
+
+	df <- data.frame(in_out_factor = in_out_factors)
+	df$sample <- as.integer(sample_matches[, 2])
+	df$generation <- as.integer(generation_matches[, 2])
+
+	df
+}
+
+all_in_out_factors <- bind_rows(lapply(graphml_files, read_graphml_in_out_factors))
+print(head(all_in_out_factors))
+
+ggplot(all_in_out_factors, aes(x = generation, y = in_out_factor)) + geom_point()
+
 #Show some of the graphs
 # ── Build file paths for samples 0–9, gen 3000 ────────────────────────────
 files <- file.path(
